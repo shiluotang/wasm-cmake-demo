@@ -74,8 +74,11 @@ void test_sdl() {
         SDL_UnlockSurface(screen);
         LOGD("SDL_UnlockSurface(screen = " << screen << ")");
     }
-    // rc = SDL_Flip(screen);
-    // LOGD("SDL_Flip(screen = " << screen << ") = " << rc);
+    // SDL_Flip is SDL1.2 API, where SDL_RenderPresent is used in SDL2,
+    // emscripten use SDL1 by default. So "-s USE_SDL=2" link option is
+    // preventing the actual rendering
+    rc = SDL_Flip(screen);
+    LOGD("SDL_Flip(screen = " << screen << ") = " << rc);
 
     printf("you should see a smoothly-colored square - no sharp lines but the square borders!\n");
     printf("and here is some text that should be HTML-friendly: amp: |&| double-quote: |\"| quote: |'| less-than, greater-than, html-like tags: |<cheez></cheez>|\nanother line.\n");
