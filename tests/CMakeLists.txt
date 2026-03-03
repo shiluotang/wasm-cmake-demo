@@ -13,7 +13,7 @@ foreach(TEST_SOURCE IN LISTS TEST_SOURCES)
     target_link_options(${TEST_NAME} PRIVATE --preload-file ${CMAKE_CURRENT_SOURCE_DIR}/data/@/)
     add_test(NAME ${TEST_NAME}
         COMMAND
-            /usr/bin/js
+            node
             --no-experimental-fetch
             --trace-uncaught
             $<TARGET_FILE:${TEST_NAME}>)
