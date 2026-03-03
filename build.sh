@@ -3,6 +3,7 @@
 declare readonly CURDIR=$(cd $(dirname ${BASH_SOURCE[0]}); pwd -P)
 
 function main() {
+    export EM_CONFIG=${EM_CONFIG:-${HOME}/.emscripten}
     declare bindir=build
     pushd ${CURDIR} >& /dev/null
     if [[ ! -d ${bindir} ]]; then
