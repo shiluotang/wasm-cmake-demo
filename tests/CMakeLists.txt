@@ -8,8 +8,10 @@ foreach(TEST_SOURCE IN LISTS TEST_SOURCES)
     add_executable(${TEST_NAME})
     target_sources(${TEST_NAME} PRIVATE ${TEST_SOURCE})
     target_link_libraries(${TEST_NAME} PUBLIC foo)
+    target_link_libraries(${TEST_NAME} PUBLIC SDL2::SDL2)
     target_compile_options(${TEST_NAME} PRIVATE -s NO_DISABLE_EXCEPTION_CATCHING)
     target_link_options(${TEST_NAME} PRIVATE -s NO_DISABLE_EXCEPTION_CATCHING)
+    target_link_options(${TEST_NAME} PRIVATE --emrun)
     target_link_options(${TEST_NAME} PRIVATE --preload-file ${CMAKE_CURRENT_SOURCE_DIR}/data/@/)
     add_test(NAME ${TEST_NAME}
         COMMAND
