@@ -18,6 +18,7 @@ pkg_check_modules(EGL egl REQUIRED)
 pkg_check_modules(GLES glesv2 REQUIRED)
 endif()
 find_package(SDL2 REQUIRED)
+find_package(OpenGL REQUIRED)
 
 add_subdirectory(src)
 include(CTest)
