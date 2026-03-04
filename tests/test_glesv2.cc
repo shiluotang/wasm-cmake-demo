@@ -1,6 +1,8 @@
 #include <cstdlib>
 #include <ctime>
 #include <cstdio>
+// #define _USE_MATH_DEFINES
+#include <cmath>
 
 #include <sstream>
 #include <iostream>
@@ -108,14 +110,14 @@ void draw_frame() {
     glGenBuffers(1, &vbo_colors);
     glBindBuffer(GL_ARRAY_BUFFER, vbo_colors);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), &vertices[0], GL_STATIC_DRAW);
-    glVertexAttribPointer(colAttrib, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), reinterpret_cast<void*>(2));
+    glVertexAttribPointer(colAttrib, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), reinterpret_cast<void*>(2 * sizeof(float)));
 
     glEnableVertexAttribArray(posAttrib);
     glEnableVertexAttribArray(colAttrib);
-    // 4. 繪製
+    // 繪製
     glDrawArrays(GL_TRIANGLES, 0, 3);
 
-    cur_angle += 0.05f;
+    cur_angle += M_PI / 180 * 0.01f;
     glfwSwapBuffers();
 }
 
@@ -147,16 +149,14 @@ void test_glesv2() {
     LOGD("glGetAttribLocation(program = " << program << ", \"color\") = " << colAttrib);
     angleUni = glGetUniformLocation(program, "angle");
     LOGD("glGetAttribLocation(program = " << program << ", \"angle\") = " << angleUni);
-
 #if __EMSCRIPTEN__
     emscripten_set_main_loop(draw_frame, 0, EM_TRUE);
 #else
     while (glfwGetWindowParam(GLFW_OPENED)) {
         draw_frame();
     }
-#endif
-
     glfwTerminate();
+#endif
 }
 
 #ifdef __EMSCRIPTEN__

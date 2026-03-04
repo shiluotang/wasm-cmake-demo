@@ -133,17 +133,18 @@ void draw_frame() {
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glLoadIdentity();
-    glRotatef(rotation, 0.0f, 0.0f, 1.0f); // 繞 Z 軸旋轉
+    // 繞 Z 軸旋轉
+    glRotatef(rotation, 0.0f, 0.0f, 1.0f);
 
-    // 4. 繪製三角形
+    // 繪製三角形
     glBegin(GL_TRIANGLES);
-        glColor3f(1.0f, 0.0f, 0.0f); glVertex2f(-0.5f, -0.4f);
-        glColor3f(0.0f, 1.0f, 0.0f); glVertex2f(0.5f, -0.4f);
-        glColor3f(0.0f, 0.0f, 1.0f); glVertex2f(0.0f, 0.6f);
+        glColor3f(1.0f, 0.0f, 0.0f); glVertex2f(-0.5f, -0.5f);
+        glColor3f(0.0f, 1.0f, 0.0f); glVertex2f(0.5f, -0.5f);
+        glColor3f(0.0f, 0.0f, 1.0f); glVertex2f(0.0f, 0.5f);
     glEnd();
 
     // 更新旋轉角度
-    rotation += 1.0f;
+    rotation += 0.1f;
     glfwSwapBuffers();
 }
 
@@ -166,16 +167,16 @@ void test_opengl() {
     glfwSetWindowTitle("GLFW 2 Rotating Triangle");
     LOGD("glfwSetWindowTitle(\"GLFW 2 Rotating Triangle\")");
 #ifdef __EMSCRIPTEN__
-    emscripten_set_main_loop(draw_frame, 0, EM_FALSE);
+    emscripten_set_main_loop(draw_frame, 0, EM_TRUE);
 #else
     while (glfwGetWindowParam(GLFW_OPENED)) {
         // 設定視口與投影 (簡單起見使用固定管線)
         draw_frame();
     }
-    // 6. 清理並退出
+#endif
+    // 清理並退出
     glfwTerminate();
     LOGD("glfwTerminate()");
-#endif
 }
 
 #ifdef __EMSCRIPTEN__
