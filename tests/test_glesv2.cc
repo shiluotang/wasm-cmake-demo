@@ -1,7 +1,6 @@
 #include <cstdlib>
 #include <ctime>
 #include <cstdio>
-// #define _USE_MATH_DEFINES
 #include <cmath>
 
 #include <sstream>
@@ -9,7 +8,6 @@
 #include <vector>
 #include <string>
 
-#include <SDL/SDL.h>
 // #include <GL/glfw.h>
 #include <GLES2/gl2.h>
 #include <GLES2/gl2ext.h>
@@ -117,7 +115,7 @@ void draw_frame() {
     // 繪製
     glDrawArrays(GL_TRIANGLES, 0, 3);
 
-    cur_angle += M_PI / 180 * 0.01f;
+    cur_angle += M_PI / 180 * 0.1f;
     glfwSwapBuffers();
 }
 
