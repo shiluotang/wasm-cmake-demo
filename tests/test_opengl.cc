@@ -1,6 +1,7 @@
 #include <cstdlib>
 #include <ctime>
 #include <cstdio>
+#include <cmath>
 
 #include <sstream>
 #include <iostream>
@@ -124,25 +125,34 @@ class glfw_env {
 
 } // namespace anonymous
 
+double rad2deg(double value) { return value * 180.0 / M_PI; }
+double deg2rad(double value) { return value * M_PI / 180.0; }
 
 void draw_frame() {
     static float rotation = 0;
-    int width, height;
-    glfwGetWindowSize(&width, &height);
-    glViewport(0, 0, width, height);
-
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glLoadIdentity();
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+    float a = 1.0f;
+    float h = std::sin(deg2rad(60)) * a;
     // 繞 Z 軸旋轉
     glRotatef(rotation, 0.0f, 0.0f, 1.0f);
-
+    // this is applied before rotate, it's proved by switch this and above!
+    glTranslatef(-a * 0.5, -std::sin(deg2rad(30)) * a * 0.5, 0);
     // 繪製三角形
     glBegin(GL_TRIANGLES);
-        glColor3f(1.0f, 0.0f, 0.0f); glVertex2f(-0.5f, -0.5f);
-        glColor3f(0.0f, 1.0f, 0.0f); glVertex2f(0.5f, -0.5f);
-        glColor3f(0.0f, 0.0f, 1.0f); glVertex2f(0.0f, 0.5f);
+        glColor3f(1.0f, 0.0f, 0.0f); glVertex2f(0, 0);
+        glColor3f(0.0f, 1.0f, 0.0f); glVertex2f(a, 0);
+        glColor3f(0.0f, 0.0f, 1.0f); glVertex2f(a * 0.5, h);
     glEnd();
-
+    glBegin(GL_LINES);
+        glColor3f(1.0f, 1.0f, 1.0f);
+        glVertex2f(a * 0.5, h);
+        // just one glColor3f invoke will make WebGL simulation broken, WTF?
+        glColor3f(1.0f, 1.0f, 1.0f);
+        glVertex2f(a * 0.5, 0);
+    glEnd();
+    glPopMatrix();
     // 更新旋轉角度
     rotation += 0.1f;
     glfwSwapBuffers();
@@ -158,14 +168,21 @@ void test_opengl() {
     if (!rc)
         throw std::runtime_error("glfwInit");
     // 2. 開啟視窗 (寬, 高, R, G, B, Alpha, Depth, Stencil, 模式)
-    rc = glfwOpenWindow(640, 480, 8, 8, 8, 8, 24, 0, GLFW_WINDOW);
-    LOGD("glfwOpenWindow(640, 480, 8, 8, 8, 8, 24, 0, GLFW_WINDOW) = " << rc);
+    rc = glfwOpenWindow(640, 640, 8, 8, 8, 8, 24, 0, GLFW_WINDOW);
+    LOGD("glfwOpenWindow(640, 640, 8, 8, 8, 8, 24, 0, GLFW_WINDOW) = " << rc);
     if (!rc) {
         glfwTerminate();
         throw std::runtime_error("glfwOpenWindow");
     }
     glfwSetWindowTitle("GLFW 2 Rotating Triangle");
     LOGD("glfwSetWindowTitle(\"GLFW 2 Rotating Triangle\")");
+    int width, height;
+    glfwGetWindowSize(&width, &height);
+    glViewport(0, 0, width, height);
+    gluLookAt(
+            0, 0, 1,
+            0, 0, 0,
+            0, 1, 0);
 #ifdef __EMSCRIPTEN__
     emscripten_set_main_loop(draw_frame, 0, EM_TRUE);
 #else
