@@ -1,19 +1,15 @@
 #include <cstdlib>
 #include <ctime>
-#include <cstdio>
-#include <cmath>
 
 #include <sstream>
 #include <iostream>
 #include <vector>
 #include <string>
 
-// #include <GL/glfw.h>
 #include <GLES2/gl2.h>
 #include <GLES2/gl2ext.h>
 // 假設環境已配置好 GLES2 轉接
 #include <GL/glfw.h>
-#include <stdio.h>
 
 #ifdef __EMSCRIPTEN__
 #include <emscripten.h>
@@ -95,20 +91,32 @@ float cur_angle = 0.0f;
 void draw_frame() {
     // 定義三角形頂點數據 (座標 x, y + 顏色 r, g, b)
     glClear(GL_COLOR_BUFFER_BIT);
-    // 3. 傳遞數據
+    // 傳遞數據
     glUniform1f(angleUni, cur_angle);
 
     GLuint vbo_vertices = 0;
     glGenBuffers(1, &vbo_vertices);
     glBindBuffer(GL_ARRAY_BUFFER, vbo_vertices);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), &vertices[0], GL_STATIC_DRAW);
-    glVertexAttribPointer(posAttrib, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), reinterpret_cast<void*>(0));
+    glVertexAttribPointer(
+            posAttrib,
+            2,
+            GL_FLOAT,
+            GL_FALSE,
+            5 * sizeof(float),
+            reinterpret_cast<void*>(0));
 
     GLuint vbo_colors = 0;
     glGenBuffers(1, &vbo_colors);
     glBindBuffer(GL_ARRAY_BUFFER, vbo_colors);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), &vertices[0], GL_STATIC_DRAW);
-    glVertexAttribPointer(colAttrib, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), reinterpret_cast<void*>(2 * sizeof(float)));
+    glVertexAttribPointer(
+            colAttrib,
+            3,
+            GL_FLOAT,
+            GL_FALSE,
+            5 * sizeof(float),
+            reinterpret_cast<void*>(2 * sizeof(float)));
 
     glEnableVertexAttribArray(posAttrib);
     glEnableVertexAttribArray(colAttrib);
