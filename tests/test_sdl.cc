@@ -1,6 +1,7 @@
 #include <cstdlib>
 #include <ctime>
 #include <cstdio>
+#include <cstring>
 
 #include <sstream>
 #include <iostream>
@@ -37,21 +38,98 @@ std::string timestamp_str(std::time_t t = std::time(NULL)) {
 #   define LOGD(x) LOGX(x)
 #endif
 
-void test_sdl() {
-    LOGD("hello, xxx world!");
-    Uint32 rc = SDL_Init(SDL_INIT_VIDEO);
-    LOGD("SDL_Init(SDL_INIT_VIDEO) = " << rc);
-    SDL_Surface *screen = SDL_SetVideoMode(256, 256, 32, SDL_SWSURFACE);
-    LOGD("SDL_SetVideoMode(256, 256, 32, SDL_SWSURFACE) = " << screen);
-
-#ifdef TEST_SDL_LOCK_OPTS
-    EM_ASM("SDL.defaults.copyOnLock = false; SDL.defaults.discardOnLock = true; SDL.defaults.opaqueFrontBuffer = false;");
-#endif
-
-    if (SDL_MUSTLOCK(screen)) {
-        rc = SDL_LockSurface(screen);
-        LOGD("SDL_LockSurface(screen = " << screen << ") = " << rc);
+class AppState {
+public:
+    AppState()
+        : _M_surface(0)
+        , _M_event()
+        , _M_quit(false)
+    {
+        std::memset(&_M_event, 0, sizeof(_M_event));
+        Uint32 rc = SDL_Init(SDL_INIT_VIDEO);
+        LOGD("SDL_Init(SDL_INIT_VIDEO) = " << rc);
+        int width = 256;
+        int height = 256;
+        int bpp = 32;
+        Uint32 flags = SDL_SWSURFACE | SDL_DOUBLEBUF;
+        SDL_Surface *screen = SDL_SetVideoMode(width, height, bpp, flags);
+        LOGD("SDL_SetVideoMode(256, 256, 32, SDL_SWSURFACE) = " << screen);
+        _M_surface = screen;
     }
+
+    ~AppState() {
+        LOGD(__PRETTY_FUNCTION__);
+        SDL_Quit();
+        LOGD("SDL_Quit()");
+    }
+
+    void setQuit(bool value) {
+        _M_quit = value;
+    }
+
+    void checkEvent() {
+        if (!SDL_PollEvent(&_M_event))
+            return;
+        switch (_M_event.type) {
+            case SDL_QUIT:
+                setQuit(true);
+                break;
+            case SDL_KEYDOWN:
+                if (_M_event.key.keysym.sym == SDLK_ESCAPE)
+                    setQuit(true);
+                break;
+            default: break;
+        }
+    }
+
+    bool shouldQuit() {
+        if (_M_quit)
+            return true;
+        checkEvent();
+        return _M_quit;
+    }
+
+    void beginScene() {
+        if (SDL_MUSTLOCK(_M_surface)) {
+            int rc = SDL_LockSurface(_M_surface);
+            LOGD("SDL_LockSurface(screen = " << _M_surface << ") = " << rc);
+        }
+    }
+
+    void endScene() {
+        if (SDL_MUSTLOCK(_M_surface)) {
+            SDL_UnlockSurface(_M_surface);
+            LOGD("SDL_UnlockSurface(screen = " << _M_surface << ")");
+        }
+        // SDL_Flip is SDL1.2 API, where SDL_RenderPresent is used in SDL2,
+        // emscripten use SDL1 by default. So "-s USE_SDL=2" link option is
+        // preventing the actual rendering
+        int rc = SDL_Flip(_M_surface);
+        LOGD("SDL_Flip(screen = " << _M_surface << ") = " << rc);
+    }
+
+    SDL_Surface* getSurface() const {
+        return _M_surface;
+    }
+protected:
+private:
+    SDL_Surface *_M_surface;
+    SDL_Event _M_event;
+    bool _M_quit;
+};
+
+void draw_frame(void *app) {
+    AppState *state = static_cast<AppState*>(app);
+    if (state->shouldQuit()) {
+#ifdef __EMSCRIPTEN__
+        LOGD(">>> emscripten_cancel_main_loop()");
+        emscripten_cancel_main_loop();
+        LOGD("<<< emscripten_cancel_main_loop()");
+#endif
+        return;
+    }
+    state->beginScene();
+    SDL_Surface *screen = state->getSurface();
     for (int i = 0; i < 256; i++) {
         for (int j = 0; j < 256; j++) {
 #ifdef TEST_SDL_LOCK_OPTS
@@ -70,21 +148,31 @@ void test_sdl() {
             //         << ")");
         }
     }
-    if (SDL_MUSTLOCK(screen)) {
-        SDL_UnlockSurface(screen);
-        LOGD("SDL_UnlockSurface(screen = " << screen << ")");
+    state->endScene();
+}
+
+void test_sdl() {
+    LOGD("hello, xxx world!");
+    AppState state;
+
+#ifdef TEST_SDL_LOCK_OPTS
+    EM_ASM("SDL.defaults.copyOnLock = false; ");
+    EM_ASM("SDL.defaults.discardOnLock = true;");
+    EM_ASM("SDL.defaults.opaqueFrontBuffer = false;");
+#endif
+    LOGD("you should see a smoothly-colored square - no sharp lines but the square borders!");
+    LOGD("and here is some text that should be HTML-friendly: amp: |&| double-quote: |\"| quote: |'| less-than, greater-than, html-like tags: |<cheez></cheez>|");
+#ifdef __EMSCRIPTEN__
+    LOGD(">>> emscripten_set_main_loop_arg(draw_frame, &state, -1, EM_TRUE)");
+    emscripten_set_main_loop_arg(draw_frame, &state, -1, EM_TRUE);
+    LOGD("<<< emscripten_set_main_loop_arg(draw_frame, &state, -1, EM_TRUE)");
+    // draw_frame(&state);
+#else
+    while (!state.shouldQuit()) {
+        draw_frame(&state);
+        SDL_Delay(1);
     }
-    // SDL_Flip is SDL1.2 API, where SDL_RenderPresent is used in SDL2,
-    // emscripten use SDL1 by default. So "-s USE_SDL=2" link option is
-    // preventing the actual rendering
-    rc = SDL_Flip(screen);
-    LOGD("SDL_Flip(screen = " << screen << ") = " << rc);
-
-    printf("you should see a smoothly-colored square - no sharp lines but the square borders!\n");
-    printf("and here is some text that should be HTML-friendly: amp: |&| double-quote: |\"| quote: |'| less-than, greater-than, html-like tags: |<cheez></cheez>|\nanother line.\n");
-
-    SDL_Quit();
-    LOGD("SDL_Quit()");
+#endif
 }
 
 #ifdef __EMSCRIPTEN__
@@ -93,5 +181,11 @@ int main() {
 int main(int argc, char* argv[]) {
 #endif
     test_sdl();
+#ifdef __EMSCRIPTEN__
+    emscripten_sleep(100);
+    LOGD(">>> emscripten_force_exit(EXIT_SUCCESS)");
+    emscripten_force_exit(EXIT_SUCCESS);
+    LOGD("<<< emscripten_force_exit(EXIT_SUCCESS)");
+#endif
     return EXIT_SUCCESS;
 }
