@@ -36,6 +36,12 @@ function build_host() {
         if ! cmake --build . --target Core5Compat; then
             return 1
         fi
+        if ! cmake --build . --target qtsvg; then
+            return 1
+        fi
+        if ! cmake --build . --target qtimageformats; then
+            return 1
+        fi
         popd >& /dev/null
     fi
 }
@@ -73,6 +79,12 @@ function build_wasm() {
             return 1
         fi
         if ! cmake --build . -t Core5Compat; then
+            return 1
+        fi
+        if ! cmake --build . --target qtsvg; then
+            return 1
+        fi
+        if ! cmake --build . --target qtimageformats; then
             return 1
         fi
         popd >& /dev/null
