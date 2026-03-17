@@ -16,6 +16,7 @@ function main() {
     if [[ ! -f ${bindir}/CMakeCache.txt ]]; then
         pushd ${bindir} >& /dev/null
         if ! emcmake cmake ..; then
+            rm CMakeCache.txt
             exit
         fi
         popd >& /dev/null
