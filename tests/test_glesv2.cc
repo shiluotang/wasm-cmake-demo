@@ -10,7 +10,11 @@
 #include <GLES2/gl2.h>
 #include <GLES2/gl2ext.h>
 // 假設環境已配置好 GLES2 轉接
+#ifdef __EMSCRIPTEN__
 #include <GL/glfw.h>
+#else
+#include <GLFW/glfw3.h>
+#endif
 
 #ifdef __EMSCRIPTEN__
 #include <emscripten.h>

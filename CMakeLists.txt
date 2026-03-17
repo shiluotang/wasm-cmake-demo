@@ -19,6 +19,7 @@ pkg_check_modules(GLES glesv2 REQUIRED)
 endif()
 find_package(SDL2 REQUIRED)
 find_package(OpenGL REQUIRED)
+find_package(Qt6 REQUIRED COMPONENTS Core)
 
 add_subdirectory(src)
 include(CTest)
