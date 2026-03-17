@@ -14,3 +14,8 @@
 **ATTENTION for windows, DO NOT add ".bat" suffix**
 
 + There's no need for ".clangd" file under project root
+
+## compile qt from source
+
++ put build-qt.sh under $HOME/opt/qt
++ run it with bash
